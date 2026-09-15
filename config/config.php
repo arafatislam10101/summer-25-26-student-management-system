@@ -33,7 +33,7 @@ if (!$conn) {
 }
 mysqli_set_charset($conn, 'utf8mb4');
 // Existing model/controller API.
-function db(): mysqli
+function db()
 {
     global $conn;
     return $conn;

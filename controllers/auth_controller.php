@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__.'/../models/user_model.php';
-class AuthController {
-    function signup():void {
+function auth_controller_signup():void {
         if(!empty($_SESSION['user']))redirect('dashboard');
         $title='Sign Up';
         $view=__DIR__.'/../views/auth/signup.php';
@@ -9,8 +8,7 @@ class AuthController {
         include $view;
         include __DIR__.'/../views/partials/footer.php';
     }
-
-    function register():void {
+function auth_controller_register():void {
         check_csrf();
 
         $role=trim($_POST['role']??'');
@@ -52,17 +50,16 @@ class AuthController {
             redirect('signup');
         }
 
-        $userModel=new User;
-        if($userModel->findByEmail($email)){
+        if(user_findByEmail($email)){
             flash('This email is already registered.');
             redirect('signup');
         }
 
         try{
-            $this->db()->begin_transaction();
+            db()->begin_transaction();
 
             $hash=password_hash($password,PASSWORD_DEFAULT);
-            $u=$this->db();
+            $u=db();
             $stmt=mysqli_prepare($u,'INSERT INTO users(name,email,password,role,status) VALUES(?,?,?,?,\'active\')');
             mysqli_stmt_bind_param($stmt,'ssss',$name,$email,$hash,$role);
             if(!mysqli_stmt_execute($stmt)) throw new Exception('Could not create user account.');
@@ -82,21 +79,19 @@ class AuthController {
                 if(!mysqli_stmt_execute($stmt)) throw new Exception('Could not create parent profile.');
             }
 
-            $this->db()->commit();
+            db()->commit();
             flash('Account created successfully. You can now sign in.');
             redirect('login');
         }catch(Throwable $e){
-            $this->db()->rollback();
+            db()->rollback();
             flash('Registration failed. Please check your information and try again.');
             redirect('signup');
         }
     }
-
-    private function db(): mysqli {
+function auth_controller_db(): mysqli {
         return db();
     }
-
-    function login():void {
+function auth_controller_login():void {
         if(!empty($_SESSION['user']))redirect('dashboard');
         $title='Login';
         $view=__DIR__.'/../views/auth/login.php';
@@ -104,11 +99,11 @@ class AuthController {
         include $view;
         include __DIR__.'/../views/partials/footer.php';
     }
-    function authenticate():void {
+function auth_controller_authenticate():void {
         check_csrf();
         $email=trim($_POST['email']??'');
         $pass=$_POST['password']??'';
-        $u=(new User)->findByEmail($email);
+        $u=user_findByEmail($email);
         if(!$u||$u['status']!=='active'||!password_verify($pass,$u['password'])) {
             flash('Invalid email or password.');
             redirect('login');
@@ -120,7 +115,7 @@ class AuthController {
         if(!empty($_POST['remember']))setcookie('remember_email',$email,['expires'=>time()+86400*30,'path'=>'/','httponly'=>true,'samesite'=>'Lax']);
         redirect('dashboard');
     }
-    function logout():void {
+function auth_controller_logout():void {
         $_SESSION=[];
         if(ini_get('session.use_cookies')) {
             $p=session_get_cookie_params();
@@ -129,4 +124,4 @@ class AuthController {
         session_destroy();
         redirect('login');
     }
-}
+

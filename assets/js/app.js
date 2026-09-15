@@ -12,3 +12,14 @@ document.addEventListener('DOMContentLoaded',()=>{
  document.querySelectorAll('[data-auto-hide],.alert').forEach(a=>setTimeout(()=>a.remove(),4500));
 });
 function toast(msg,ok=true){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);}t.textContent=msg;t.className=ok?'toast ok':'toast bad';setTimeout(()=>t.remove(),2800);}
+
+
+// Fetch API helper used by the AJAX CRUD endpoints.
+async function apiFetch(url, data = {}) {
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
+        body: new URLSearchParams(data)
+    });
+    return response.json();
+}
